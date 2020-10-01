@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: trip
+  name: trip
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trip
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: trip
+    spec:
+      containers:
+        - image: stavangler.azurecr.io/trip:1.0.0
+          name: trip
+          resources: {}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
