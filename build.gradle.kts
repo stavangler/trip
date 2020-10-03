@@ -104,7 +104,7 @@ tasks {
       "docker",
       "build",
       "--build-arg",
-      "JAR_FILE=build/libs/${project.name}-${project.version}.jar",
+      "JAR_FILE=build/libs/${project.name}-${project.version}-all.jar",
       "-t",
       "$dockerImagePrefix/${project.name}:${project.version}",
       "."
