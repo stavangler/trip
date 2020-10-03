@@ -17,6 +17,7 @@ spec:
     spec:
       containers:
         - image: stavangler.azurecr.io/bratur/trip:1.0.0
+          imagePullPolicy: Always
           name: trip
           resources: {}
           ports:
