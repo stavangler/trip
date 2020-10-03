@@ -6,5 +6,5 @@ spec:
   template:
     spec:
       containers:
-        - image: stavangler.azurecr.io/trip:1.0-SNAPSHOT
+        - image: stavangler.azurecr.io/bratur/trip:1.0-SNAPSHOT
           name: trip

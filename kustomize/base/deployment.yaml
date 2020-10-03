@@ -16,7 +16,7 @@ spec:
         app: trip
     spec:
       containers:
-        - image: stavangler.azurecr.io/trip:1.0.0
+        - image: stavangler.azurecr.io/bratur/trip:1.0.0
           name: trip
           resources: {}
           ports:
