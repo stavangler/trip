@@ -3,6 +3,11 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
+val logback_version: String by project
+val ktor_version: String by project
+val kotlin_version: String by project
+val ktor_swagger_version: String by project
+
 plugins {
   kotlin("jvm") version "1.4.10"
   application
@@ -15,7 +20,8 @@ plugins {
   id("org.jlleitschuh.gradle.ktlint-idea") version "9.4.0"
   id("org.owasp.dependencycheck") version "6.0.2"
 }
-group = "stavangler.bratur.services"
+
+group = "net.bratur.trip"
 version = "1.0-SNAPSHOT"
 val dockerRepositoryName = "stavangler"
 val dockerRepository = "$dockerRepositoryName.azurecr.io"
@@ -31,18 +37,24 @@ repositories {
     url = uri("https://dl.bintray.com/kotlin/kotlinx")
   }
 }
+
 dependencies {
   testImplementation(kotlin("test-junit5"))
-  implementation("io.ktor:ktor-server-netty:1.4.0")
-  implementation("io.ktor:ktor-html-builder:1.4.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.2")
+  implementation("io.ktor:ktor-server-netty:$ktor_version")
+  implementation("io.ktor:ktor-auth:$ktor_version")
+  implementation("io.ktor:ktor-auth-jwt:$ktor_version")
+  implementation("io.ktor:ktor-gson:$ktor_version")
+  implementation("io.ktor:ktor-locations:$ktor_version")
+  implementation("io.ktor:ktor-server-core:$ktor_version")
+  implementation("io.ktor:ktor-server-host-common:$ktor_version")
+  implementation("de.nielsfalk.ktor:ktor-swagger:$ktor_swagger_version")
 
   // logging
-  implementation("net.logstash.logback:logstash-logback-encoder:6.+")
+  implementation("ch.qos.logback:logback-classic:1.2.1")
   implementation("io.github.microutils:kotlin-logging:1.7.+")
-  val logbackJsonVersion = "0.1.+"
-  implementation("ch.qos.logback.contrib:logback-json-classic:$logbackJsonVersion")
-  implementation("ch.qos.logback.contrib:logback-jackson:$logbackJsonVersion")
+
+  // test
+  testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }
 
 tasks {
@@ -121,7 +133,7 @@ tasks {
 }
 
 application {
-  mainClassName = "ServerKt"
+  mainClassName = "io.ktor.server.netty.EngineMain"
 }
 
 java {
