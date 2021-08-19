@@ -1,24 +1,24 @@
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
-val logback_version: String by project
-val ktor_version: String by project
-val kotlin_version: String by project
-val ktor_swagger_version: String by project
+val logbackVersion: String by project
+val ktorVersion: String by project
+val kotlinVersion: String by project
 
 plugins {
-  kotlin("jvm") version "1.4.10"
+  kotlin("jvm") version "1.5.21"
   application
   idea
   jacoco
   id("project-report")
-  id("com.github.johnrengelman.shadow") version "6.0.0"
-  id("io.gitlab.arturbosch.detekt") version "1.14.1"
-  id("org.jlleitschuh.gradle.ktlint") version "9.4.0"
-  id("org.jlleitschuh.gradle.ktlint-idea") version "9.4.0"
-  id("org.owasp.dependencycheck") version "6.0.2"
+  id("com.github.johnrengelman.shadow") version "7.0.0"
+  id("io.gitlab.arturbosch.detekt") version "1.18.0"
+  id("org.jlleitschuh.gradle.ktlint") version "10.1.0"
+  id("org.jlleitschuh.gradle.ktlint-idea") version "10.1.0"
+  id("org.owasp.dependencycheck") version "6.2.2"
 }
 
 group = "net.bratur.trip"
@@ -29,52 +29,66 @@ val dockerImagePrefix = "$dockerRepositoryName.azurecr.io/bratur"
 
 repositories {
   mavenCentral()
-  jcenter()
-  maven {
-    url = uri("https://dl.bintray.com/kotlin/ktor")
-  }
-  maven {
-    url = uri("https://dl.bintray.com/kotlin/kotlinx")
-  }
 }
 
 dependencies {
   testImplementation(kotlin("test-junit5"))
-  implementation("io.ktor:ktor-server-netty:$ktor_version")
-  implementation("io.ktor:ktor-auth:$ktor_version")
-  implementation("io.ktor:ktor-auth-jwt:$ktor_version")
-  implementation("io.ktor:ktor-gson:$ktor_version")
-  implementation("io.ktor:ktor-locations:$ktor_version")
-  implementation("io.ktor:ktor-server-core:$ktor_version")
-  implementation("io.ktor:ktor-server-host-common:$ktor_version")
-  implementation("de.nielsfalk.ktor:ktor-swagger:$ktor_swagger_version")
+  implementation("io.ktor:ktor-server-netty:$ktorVersion")
+  implementation("io.ktor:ktor-auth:$ktorVersion")
+  implementation("io.ktor:ktor-auth-jwt:$ktorVersion")
+  implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+  implementation("io.ktor:ktor-gson:$ktorVersion")
+  implementation("io.ktor:ktor-locations:$ktorVersion")
+  implementation("io.ktor:ktor-server-core:$ktorVersion")
+  implementation("io.ktor:ktor-server-host-common:$ktorVersion")
 
   // logging
-  implementation("ch.qos.logback:logback-classic:1.2.1")
+  implementation("ch.qos.logback:logback-classic:$logbackVersion")
   implementation("io.github.microutils:kotlin-logging:1.7.+")
 
   // test
-  testImplementation("io.ktor:ktor-server-tests:$ktor_version")
+  testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
+}
+
+// Workaround for ktlint
+afterEvaluate {
+  arrayOf(
+    "processResources",
+    "ktlintMainSourceSetFormat",
+    "runKtlintFormatOverMainSourceSet",
+    "ktlintTestSourceSetFormat",
+    "runKtlintFormatOverTestSourceSet",
+    "compileKotlin",
+    "ktlintKotlinScriptFormat",
+    "runKtlintFormatOverKotlinScripts"
+  ).forEach { name ->
+    tasks.named(name).configure {
+      if ("runKtlintFormatOverKotlinScripts" != name) {
+        dependsOn(":runKtlintFormatOverKotlinScripts")
+      }
+      if (project.parent != null && project.parent?.name != rootProject.name) {
+        dependsOn(":${project.parent?.name}:runKtlintFormatOverKotlinScripts")
+      }
+    }
+  }
 }
 
 tasks {
   withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "13"
+    kotlinOptions.jvmTarget = "16"
   }
 
   // Global tasks configuration
   withType<GradleBuild> {
     startParameter.showStacktrace = ShowStacktrace.ALWAYS
+    startParameter.warningMode = WarningMode.Fail
   }
 
   withType<JacocoReport> {
     reports {
-      xml.apply {
-        isEnabled = true
-      }
-      html.apply {
-        isEnabled = true
-      }
+      xml.required.set(true)
+      html.required.set(true)
+      html.outputLocation.set(layout.buildDirectory.dir("${project.buildDir}/reports/jacoco/html"))
     }
   }
 
@@ -133,11 +147,11 @@ tasks {
 }
 
 application {
-  mainClassName = "io.ktor.server.netty.EngineMain"
+  mainClass.set("io.ktor.server.netty.EngineMain")
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_13
+  sourceCompatibility = JavaVersion.VERSION_16
   withJavadocJar()
   withSourcesJar()
 }
@@ -152,18 +166,24 @@ idea {
 }
 
 detekt {
-  config.setFrom(files("src/main/resources/default-detekt-config.yml"))
+  config.setFrom(files("config/detekt/default-detekt-config.yml"))
 }
 
 ktlint {
-  version.set("0.39.0")
+  version.set("0.42.1")
   outputToConsole.set(true)
   coloredOutput.set(true)
+  baseline.set(file("config/ktlint/baseline.xml"))
   reporters {
     reporter(ReporterType.PLAIN)
     reporter(ReporterType.CHECKSTYLE)
     reporter(ReporterType.HTML)
   }
+}
+
+jacoco {
+  toolVersion = "0.8.7"
+  reportsDirectory.set(layout.buildDirectory.dir("${project.buildDir}/reports/jacoco"))
 }
 
 dependencyCheck {
