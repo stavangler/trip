@@ -22,7 +22,7 @@ plugins {
 }
 
 group = "net.bratur.trip"
-version = "1.0-SNAPSHOT"
+version = "1.1-SNAPSHOT"
 val dockerRepositoryName = "stavangler"
 val dockerRepository = "$dockerRepositoryName.azurecr.io"
 val dockerImagePrefix = "$dockerRepositoryName.azurecr.io/bratur"
