@@ -1,7 +1,7 @@
 FROM azul/zulu-openjdk-alpine:15-jre
 
 CMD mkdir /opt
-COPY build/libs/trip-1.0-SNAPSHOT-all.jar /opt/app.jar
+COPY build/libs/trip-1.1-SNAPSHOT-all.jar /opt/app.jar
 
 EXPOSE 8080
 
