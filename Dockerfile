@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:15-jre
+FROM azul/zulu-openjdk-alpine:16-jre
 
 CMD mkdir /opt
 
